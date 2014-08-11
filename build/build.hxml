@@ -1,0 +1,40 @@
+<xml>
+    <include name="${HXCPP}/build-tool/BuildCommon.xml" />
+    <include name="${HXCPP}/toolchain/linux-toolchain.xml" if="linux" />
+    <include name="${HXCPP}/toolchain/mac-toolchain.xml" if="macos" />
+    <include name="${HXCPP}/toolchain/cygwin-toolchain.xml" if="windows" />
+
+    <set name="LIB_DIR" value="-libpath:lib" if="windows" />
+    <set name="LIB_DIR" value="-Llib" unless="windows" />
+
+    <set name="HXCPP_CPP11" value="1" />
+
+    <!-- Define all cpp files that need to be compiled into the libhxsocket.ndll -->
+    <files id="files">
+        <!-- Set up include folder paths -->
+        <compilerflag value="-I./include" />
+
+        <!-- List of cpp files to be compiled -->
+        <file name="src/unixsocket.cpp" />
+    </files>
+
+    <!-- define compiler build & linking target -->
+    <target id="libhxsocket.ndll" tool="linker" toolid="dll" output="libhxsocket">
+        <ext value=".ndll" />
+
+        <!-- output directory for linker. -->
+        <!-- ${BINDIR} substituted by hxcpp build tool for your platform e.g. "Windows", "Mac64" -->
+        <outdir name="ndll/${BINDIR}" />
+
+        <!-- specific previously defined list of files to compile -->
+        <files id="files" />
+
+        <!-- link to libsocket.so -->
+        <lib name="/usr/local/lib/libsocket.so" if="linux" />
+    </target>
+
+    <!-- specifies default hxcpp build tool target -->
+    <target id="default">
+        <target id="libhxsocket.ndll" />
+    </target>
+</xml>

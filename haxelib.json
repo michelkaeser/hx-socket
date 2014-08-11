@@ -1,0 +1,16 @@
+{
+    "name": "hxsocket",
+    "url" : "https://github.com/MaddinXx/hxsocket",
+    "license": "MIT",
+    "tags": ["socket", "tcp", "udp", "unix", "ipv4", "ipv6"],
+    "description": "Haxe (C++/Neko) language bindings for libsocket.",
+    "classPath": "api",
+    "dependencies": {
+        "hxstd": ""
+    },
+    "version": "0.1.0",
+    "releasenote": "Initial release",
+    "contributors": [
+        "MaddinXx"
+    ]
+}
