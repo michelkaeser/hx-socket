@@ -69,7 +69,19 @@ value hx_recvfrom_unix_dgram_socket(value socket, value nbytes, value flags);
 /*
  *
  */
+value hx_recvfrom_unix_stream_socket(value socket, value nbytes);
+
+
+/*
+ *
+ */
 value hx_sendto_unix_dgram_socket(value socket, value buffer, value size, value path, value flags);
+
+
+/*
+ *
+ */
+value hx_sendto_unix_stream_socket(value socket, value buffer, value size);
 
 
 /*

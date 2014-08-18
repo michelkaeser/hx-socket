@@ -5,26 +5,23 @@ import haxe.io.BytesData;
 import hxsocket.Loader;
 import hxsocket.Sfd;
 import hxsocket.SocketException;
+import hxsocket.UnixDgramSocket;
+import hxsocket.UnixStreamSocket;
 import hxstd.IllegalArgumentException;
 import hxstd.IllegalStateException;
+import hxstd.NotImplementedException;
 
 /**
  *
+ * @abstract
  */
 class UnixSocket
 {
     /**
      * References to native function implementations loaded through Haxe (hxcpp) C FFI.
      */
-    private static var _accept_unix_stream_socket:Sfd->Int->Sfd = Loader.load("hx_accept_unix_stream_socket", 2);
-    private static var _connect_unix_dgram_socket:Sfd->String->Int = Loader.load("hx_connect_unix_dgram_socket", 2);
-    private static var _create_unix_dgram_socket:String->Int->Sfd  = Loader.load("hx_create_unix_dgram_socket", 2);
-    private static var _create_unix_server_socket:String->Int->Int->Sfd = Loader.load("hx_create_unix_server_socket", 3);
-    private static var _create_unix_stream_socket:String->Int->Sfd = Loader.load("hx_create_unix_stream_socket", 2);
-    private static var _destroy_unix_socket:Sfd->Int               = Loader.load("hx_destroy_unix_socket", 1);
-    private static var _recvfrom_unix_dgram_socket:Sfd->Int->Int->{ bytes:BytesData, from:String } = Loader.load("hx_recvfrom_unix_dgram_socket", 3);
-    private static var _sendto_unix_dgram_socket:Sfd->BytesData->Int->String->Int->Int = Loader.load("hx_sendto_unix_dgram_socket", 5);
-    private static var _shutdown_unix_stream_socket:Sfd->Int->Int  = Loader.load("hx_shutdown_unix_stream_socket", 2);
+    private static var _create:String->Int->Int->Sfd = Loader.load("hx_create_unix_server_socket", 3);
+    private static var _destroy:Sfd->Int             = Loader.load("hx_destroy_unix_socket", 1);
 
     /**
      * Possible UnixSocket server modes.
@@ -48,10 +45,10 @@ class UnixSocket
 
 
     /**
-     * Constructor to initialize a new Unixsocket instance.
+     * Constructor to initialize a new UnixSocket instance.
      *
      * @param hxsocket.Sfd sfd  the socket file descriptor to wrap
-     * @param String       path the path on which the socket listens
+     * @param Null<String> path the path on which the socket listens
      */
     private function new(sfd:Sfd, ?path:String):Void
     {
@@ -60,79 +57,38 @@ class UnixSocket
     }
 
     /**
+     * Creates a new UnixSocket of the given type.
      *
-     */
-    public function accept(flags:Int):UnixSocket
-    {
-        if (this.sfd == null) {
-            throw new IllegalStateException("Socket file descriptor not available");
-        }
-
-        try {
-            return new UnixSocket(UnixSocket._accept_unix_stream_socket(this.sfd, flags));
-        } catch (ex:Dynamic) {
-            throw new SocketException(ex);
-        }
-    }
-
-    /**
+     * @param String path  the location for the socket to be created
+     * @param Int    type  the type of the socket to create
+     * @param Int    flags control flags
      *
+     * @return hxsocket.UnixSocket
      */
-    public function connect(path:String):Void
-    {
-        if (this.sfd == null) {
-            throw new IllegalStateException("Socket file descriptor not available");
-        }
-
-        try {
-            UnixSocket._connect_unix_dgram_socket(this.sfd, path);
-        } catch (ex:Dynamic) {
-            throw new SocketException(ex);
-        }
-    }
-
-    /**
-     *
-     */
-    public static function createDgramSocket(path:String, flags:Int):UnixSocket
-    {
-        try {
-            return new UnixSocket(UnixSocket._create_unix_dgram_socket(path, flags), path);
-        } catch (ex:Dynamic) {
-            throw new SocketException(ex);
-        }
-    }
-
-    /**
-     *
-     */
-    public static function createServerSocket(path:String, type:Int, flags:Int):UnixSocket
+    public static function createServer(path:String, type:Int, flags:Int = 0):UnixSocket
     {
         if (type != UnixSocket.STREAM && type != UnixSocket.DGRAM) {
             throw new IllegalArgumentException("Invalid socket type argument (must be UnixSocket.STREAM or UnixSocket.DGRAM)");
         }
 
+        var sock:UnixSocket;
         try {
-            return new UnixSocket(UnixSocket._create_unix_server_socket(path, type, flags), path);
+            sock = if (type == UnixSocket.STREAM) {
+                new UnixStreamSocket(UnixSocket._create(path, type, flags), path);
+            } else {
+                new UnixDgramSocket(UnixSocket._create(path, type, flags), path);
+            }
         } catch (ex:Dynamic) {
             throw new SocketException(ex);
         }
+
+        return sock;
     }
 
     /**
+     * Destroys the socket.
      *
-     */
-    public static function createStreamSocket(path:String, flags:Int):UnixSocket
-    {
-        try {
-            return new UnixSocket(UnixSocket._create_unix_stream_socket(path, flags), path);
-        } catch (ex:Dynamic) {
-            throw new SocketException(ex);
-        }
-    }
-
-    /**
-     *
+     * Attn: The socket can no longer be used afterwards.
      */
     public function destroy():Void
     {
@@ -141,7 +97,7 @@ class UnixSocket
         }
 
         try {
-            UnixSocket._destroy_unix_socket(this.sfd) /* == 0 */;
+            UnixSocket._destroy(this.sfd);
             this.sfd  = null;
             this.path = null;
         } catch (ex:Dynamic) {
@@ -150,69 +106,27 @@ class UnixSocket
     }
 
     /**
+     * Reads 'nbytes' from the socket.
      *
+     * @param Int nbytes the number of bytes to read
+     * @param Int flags  control flags
+     *
+     * @return { bytes:haxe.io.Bytes, from:Null<String> }
      */
-    public function read(nbytes:Int, flags:Int):{ bytes:Bytes, from:Null<String> }
+    public function read(nbytes:Int, flags:Int = 0):{ bytes:Bytes, from:Null<String> }
     {
-        if (this.sfd == null) {
-            throw new IllegalStateException("Socket file descriptor not available");
-        }
-
-        var ret:{ bytes:Bytes, from:Null<String> };
-        if (nbytes == 0) {
-            ret = { bytes: Bytes.alloc(0), from: null };
-        } else {
-            try {
-                var cret = UnixSocket._recvfrom_unix_dgram_socket(this.sfd, nbytes, flags);
-                ret = { bytes: Bytes.ofData(cret.bytes), from: cret.from };
-            } catch (ex:Dynamic) {
-                throw new SocketException(ex);
-            }
-        }
-
-        return ret;
+        throw new NotImplementedException("Method read() not implemented in abstract class UnixSocket");
     }
 
     /**
+     * Writes the input bytes to the socket located at 'path'.
      *
+     * @param Null<haxe.io.Bytes> bytes the Bytes to send
+     * @param Int                 flags control flags
+     * @param Null<String>        path  the location of the socket to which we will write
      */
-    public function shutdown(method:Int):Void
+    public function write(bytes:Null<Bytes>, flags:Int = 0, path:Null<String> = null):Int
     {
-        if (this.sfd == null) {
-            throw new IllegalStateException("Socket file descriptor not available");
-        }
-
-        try {
-            UnixSocket._shutdown_unix_stream_socket(this.sfd, method) /* == 0 */;
-        } catch (ex:Dynamic) {
-            throw new SocketException(ex);
-        }
-    }
-
-    /**
-     *
-     */
-    public function write(bytes:Null<Bytes>, flags:Int, path:Null<String> = null):Int
-    {
-        if (this.sfd == null) {
-            throw new IllegalStateException("Socket file descriptor not available");
-        }
-
-        var sent:Int;
-        if (bytes == null || bytes.length == 0) {
-            sent = 0;
-        } else {
-            if (path == null) {
-                path = this.path;
-            }
-
-            try {
-                sent = UnixSocket._sendto_unix_dgram_socket(this.sfd, bytes.getData(), bytes.length, path, flags);
-            } catch (ex:Dynamic) {
-                throw new SocketException(ex);
-            }
-        }
-
-        return sent;
+        throw new NotImplementedException("Method write() not implemented in abstract class UnixSocket");
     }
 }
