@@ -35,7 +35,7 @@ value hx_accept_unix_stream_socket(value socket, value flags)
         val      = alloc_unixsocket(sfd);
         val_gc(val, finalize_unixsocket_abstract);
     } else {
-        neko_error();
+        val_throw(alloc_string("Accepting connections on the Unix stream socket failed"));
         val = alloc_int(ret);
     }
 
@@ -51,7 +51,7 @@ value hx_connect_unix_dgram_socket(value socket, value path)
 
     int ret = connect_unix_dgram_socket(*val_unixsocket(socket), val_string(path));
     if (ret != 0) {
-        neko_error();
+        val_throw(alloc_string("Connecting to the Unix dgram socket failed"));
     }
 
     return alloc_int(ret);
@@ -72,7 +72,7 @@ value hx_create_unix_dgram_socket(value path, value flags)
         val      = alloc_unixsocket(sfd);
         val_gc(val, finalize_unixsocket_abstract);
     } else {
-        neko_error();
+        val_throw(alloc_string("Creating the Unix dgram socket failed"));
         val = alloc_int(ret);
     }
 
@@ -95,7 +95,7 @@ value hx_create_unix_server_socket(value path, value type, value flags)
         val      = alloc_unixsocket(sfd);
         val_gc(val, finalize_unixsocket_abstract);
     } else {
-        neko_error();
+        val_throw(alloc_string("Creating the Unix server socket failed"));
         val = alloc_int(ret);
     }
 
@@ -117,7 +117,7 @@ value hx_create_unix_stream_socket(value path, value flags)
         val      = alloc_unixsocket(sfd);
         val_gc(val, finalize_unixsocket_abstract);
     } else {
-        neko_error();
+        val_throw(alloc_string("Creating the Unix stream socket failed"));
         val = alloc_int(ret);
     }
 
@@ -133,7 +133,7 @@ value hx_destroy_unix_socket(value socket)
     int* sfd = val_unixsocket(socket);
     int ret  = destroy_unix_socket(*sfd);
     if (ret != 0) {
-        neko_error();
+        val_throw(alloc_string("Destroying the Unix socket failed"));
     }
 
     return alloc_int(ret);
@@ -158,7 +158,7 @@ value hx_recvfrom_unix_dgram_socket(value socket, value nbytes, value from, valu
         buffer_append_sub(buf, inbuf, ret);
         val = buffer_val(buf);
     } else {
-        neko_error();
+        val_throw(alloc_string("Receiving from the Unix dgram socket failed"));
         val = alloc_int(ret);
     }
 
@@ -176,7 +176,7 @@ value hx_sendto_unix_dgram_socket(value socket, value buffer, value size, value 
 
     int ret = sendto_unix_dgram_socket(*val_unixsocket(socket), buffer, val_int(size), val_string(path), val_int(flags));
     if (ret < 0) {
-        neko_error();
+        val_throw(alloc_string("Sending to the Unix dgram socket failed"));
     }
 
     return alloc_int(ret);
@@ -192,7 +192,7 @@ value hx_shutdown_unix_stream_socket(value socket, value method)
     int* sfd = val_unixsocket(socket);
     int ret  = shutdown_unix_stream_socket(*sfd, val_int(method));
     if (ret != 0) {
-        neko_error();
+        val_throw(alloc_string("Shutting down the Unix stream socket failed"));
     }
 
     return alloc_int(ret);
