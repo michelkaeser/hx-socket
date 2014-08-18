@@ -31,7 +31,7 @@ value hx_accept_unix_stream_socket(value socket, value flags)
 
     value val;
     int ret = accept_unix_stream_socket(*val_unixsocket(socket), val_int(flags));
-    if (ret == 0) {
+    if (ret > 0) {
         int* sfd = malloc_unixsocket();
         *sfd     = ret;
         val      = alloc_unixsocket(sfd);
@@ -68,7 +68,7 @@ value hx_create_unix_dgram_socket(value path, value flags)
 
     value val;
     int ret = create_unix_dgram_socket(val_string(path), val_int(flags));
-    if (ret == 0) {
+    if (ret > 0) {
         int* sfd = malloc_unixsocket();
         *sfd     = ret;
         val      = alloc_unixsocket(sfd);
@@ -91,7 +91,7 @@ value hx_create_unix_server_socket(value path, value type, value flags)
 
     value val;
     int ret = create_unix_server_socket(val_string(path), val_int(type), val_int(flags));
-    if (ret == 0) {
+    if (ret > 0) {
         int* sfd = malloc_unixsocket();
         *sfd     = ret;
         val      = alloc_unixsocket(sfd);
@@ -113,7 +113,7 @@ value hx_create_unix_stream_socket(value path, value flags)
 
     value val;
     int ret = create_unix_stream_socket(val_string(path), val_int(flags));
-    if (ret == 0) {
+    if (ret > 0) {
         int* sfd = malloc_unixsocket();
         *sfd     = ret;
         val      = alloc_unixsocket(sfd);

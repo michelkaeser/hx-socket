@@ -1,4 +1,4 @@
-package hxpolarssl;
+package hxsocket;
 
 #if cpp
     import cpp.Lib;
