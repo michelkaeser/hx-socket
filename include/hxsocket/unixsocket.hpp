@@ -5,6 +5,9 @@
 extern "C" {
 #endif
 
+#define FROM_BUFFER_SIZE  128
+
+
 DECLARE_KIND(k_unixsocket);
 
 
@@ -60,7 +63,7 @@ value hx_destroy_unix_socket(value socket);
 /*
  *
  */
-value hx_recvfrom_unix_dgram_socket(value socket, value nbytes, value from, value flags);
+value hx_recvfrom_unix_dgram_socket(value socket, value nbytes, value flags);
 
 
 /*

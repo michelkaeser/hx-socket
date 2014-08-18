@@ -22,7 +22,7 @@ class UnixSocket
     private static var _create_unix_server_socket:String->Int->Int->Sfd = Loader.load("hx_create_unix_server_socket", 3);
     private static var _create_unix_stream_socket:String->Int->Sfd = Loader.load("hx_create_unix_stream_socket", 2);
     private static var _destroy_unix_socket:Sfd->Int               = Loader.load("hx_destroy_unix_socket", 1);
-    private static var _recvfrom_unix_dgram_socket:Sfd->Int->String->Int->BytesData = Loader.load("hx_recvfrom_unix_dgram_socket", 4);
+    private static var _recvfrom_unix_dgram_socket:Sfd->Int->Int->{ bytes:BytesData, from:String } = Loader.load("hx_recvfrom_unix_dgram_socket", 3);
     private static var _sendto_unix_dgram_socket:Sfd->BytesData->Int->String->Int->Int = Loader.load("hx_sendto_unix_dgram_socket", 5);
     private static var _shutdown_unix_stream_socket:Sfd->Int->Int  = Loader.load("hx_shutdown_unix_stream_socket", 2);
 
@@ -85,7 +85,7 @@ class UnixSocket
         }
 
         try {
-            UnixSocket._connect_unix_dgram_socket(this.sfd, path) /* == 0 */;
+            UnixSocket._connect_unix_dgram_socket(this.sfd, path);
         } catch (ex:Dynamic) {
             throw new SocketException(ex);
         }
@@ -152,28 +152,25 @@ class UnixSocket
     /**
      *
      */
-    public function read(nbytes:Int, flags:Int, from:Null<String> = null):Bytes
+    public function read(nbytes:Int, flags:Int):{ bytes:Bytes, from:Null<String> }
     {
         if (this.sfd == null) {
             throw new IllegalStateException("Socket file descriptor not available");
         }
 
-        var read:Bytes;
+        var ret:{ bytes:Bytes, from:Null<String> };
         if (nbytes == 0) {
-            read = Bytes.alloc(0);
+            ret = { bytes: Bytes.alloc(0), from: null };
         } else {
-            if (from == null) {
-                from = this.path;
-            }
-
             try {
-                read = Bytes.ofData(UnixSocket._recvfrom_unix_dgram_socket(this.sfd, nbytes, from, flags));
+                var cret = UnixSocket._recvfrom_unix_dgram_socket(this.sfd, nbytes, flags);
+                ret = { bytes: Bytes.ofData(cret.bytes), from: cret.from };
             } catch (ex:Dynamic) {
                 throw new SocketException(ex);
             }
         }
 
-        return read;
+        return ret;
     }
 
     /**
@@ -210,7 +207,7 @@ class UnixSocket
             }
 
             try {
-                sent = UnixSocket._sendto_unix_dgram_socket(this.sfd, bytes.getData(), bytes.length, path, flags) /* == 0 */;
+                sent = UnixSocket._sendto_unix_dgram_socket(this.sfd, bytes.getData(), bytes.length, path, flags);
             } catch (ex:Dynamic) {
                 throw new SocketException(ex);
             }

@@ -143,22 +143,25 @@ value hx_destroy_unix_socket(value socket)
 DEFINE_PRIM(hx_destroy_unix_socket, 1);
 
 
-value hx_recvfrom_unix_dgram_socket(value socket, value nbytes, value from, value flags)
+value hx_recvfrom_unix_dgram_socket(value socket, value nbytes, value flags)
 {
     val_check_unixsocket(socket);
     val_check(nbytes, int);
-    val_check(from, string);
     val_check(flags, int);
 
     size_t size = val_int(nbytes);
     char inbuf[size];
+    char frombuf[FROM_BUFFER_SIZE];
 
     value val;
-    int ret = recvfrom_unix_dgram_socket(*val_unixsocket(socket), inbuf, size, (char*)val_string(from), val_strlen(from), val_int(flags));
+    int ret = recvfrom_unix_dgram_socket(*val_unixsocket(socket), inbuf, size, frombuf, FROM_BUFFER_SIZE - 1, val_int(flags));
     if (ret >= 0) {
+        value obj  = alloc_empty_object();
+        alloc_field(obj, val_id("from"), alloc_string(frombuf));
         buffer buf = alloc_buffer(NULL);
         buffer_append_sub(buf, inbuf, ret);
-        val = buffer_val(buf);
+        alloc_field(obj, val_id("bytes"), buffer_val(buf));
+        val = obj;
     } else {
         val_throw(alloc_string("Receiving from the Unix dgram socket failed"));
         val = alloc_int(ret);
@@ -166,7 +169,7 @@ value hx_recvfrom_unix_dgram_socket(value socket, value nbytes, value from, valu
 
     return val;
 }
-DEFINE_PRIM(hx_recvfrom_unix_dgram_socket, 4);
+DEFINE_PRIM(hx_recvfrom_unix_dgram_socket, 3);
 
 
 value hx_sendto_unix_dgram_socket(value socket, value buffer, value size, value path, value flags)
