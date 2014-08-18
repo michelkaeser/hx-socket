@@ -30,7 +30,7 @@
         <files id="files" />
 
         <!-- link to libsocket.so -->
-        <lib name="/usr/local/lib/libsocket.so" if="linux" />
+        <lib name="/usr/lib/libsocket.so" if="linux" />
     </target>
 
     <!-- specifies default hxcpp build tool target -->

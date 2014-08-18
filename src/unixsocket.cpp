@@ -1,11 +1,13 @@
 #define  IMPLEMENT_API
 #define  NEKO_COMPATIBLE
 #include <hx/CFFI.h>
-#include <libsocket/libunixsocket.h>
 
 #include "hxsocket/unixsocket.hpp"
 
 extern "C" {
+
+#include <libsocket/libunixsocket.h>
+
 
 DEFINE_KIND(k_unixsocket);
 
