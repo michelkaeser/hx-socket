@@ -14,7 +14,7 @@ interface IStreamSocket
      *
      * @return hxsocket.IStreamSocket
      */
-    public function accept(flags:Int = 0):IStreamSocket
+    public function accept(flags:Int = 0):IStreamSocket;
 
     /**
      * Reads 'nbytes' from the socket.
@@ -30,12 +30,12 @@ interface IStreamSocket
      *
      * @param Int method the stream to shutdown
      */
-    public function shutdown(method:Int):Void
+    public function shutdown(method:Int):Void;
 
     /**
      * Writes the input bytes to the socket.
      *
      * @param Null<haxe.io.Bytes> bytes the Bytes to send
      */
-    public function write(bytes:Null<Bytes>):Int
+    public function write(bytes:Null<Bytes>):Int;
 }

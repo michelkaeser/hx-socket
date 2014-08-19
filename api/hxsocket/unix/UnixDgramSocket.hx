@@ -1,17 +1,17 @@
-package hxsocket;
+package hxsocket.unix;
 
 import haxe.io.Bytes;
 import haxe.io.BytesData;
 import hxsocket.IDgramSocket;
 import hxsocket.Loader;
 import hxsocket.SocketException;
-import hxsocket.unix.Socket;
+import hxsocket.unix.UnixSocket;
 import hxstd.IllegalStateException;
 
 /**
  *
  */
-class DgramSocket extends Socket implements IDgramSocket
+class UnixDgramSocket extends UnixSocket implements IDgramSocket
 {
     /**
      * References to native function implementations loaded through Haxe (hxcpp) C FFI.
@@ -19,7 +19,9 @@ class DgramSocket extends Socket implements IDgramSocket
     private static var _connect:Sfd->String->Int = Loader.load("hx_connect_unix_dgram_socket", 2);
     private static var _create:String->Int->Sfd  = Loader.load("hx_create_unix_dgram_socket", 2);
     private static var _recvfrom:Sfd->Int->Int->{ bytes:BytesData, from:String } = Loader.load("hx_recvfrom_unix_dgram_socket", 3);
+    private static var _recvfrom2:Sfd->Int->BytesData   = Loader.load("hx_recvfrom_unix_stream_socket", 2);
     private static var _sendto:Sfd->BytesData->Int->String->Int->Int = Loader.load("hx_sendto_unix_dgram_socket", 5);
+    private static var _sendto2:Sfd->BytesData->Int->Int = Loader.load("hx_sendto_unix_stream_socket", 3);
 
 
     /**
@@ -93,7 +95,30 @@ class DgramSocket extends Socket implements IDgramSocket
     /**
      * @{inherit}
      */
-    public function write(bytes:Null<Bytes>, flags:Int = 0, path:Null<String> = null):Int
+    public function readPeer(nbytes:Int):Bytes
+    {
+        if (this.sfd == null) {
+            throw new IllegalStateException("Socket file descriptor not available");
+        }
+
+        var bytes:Bytes;
+        if (nbytes == 0) {
+            bytes = Bytes.alloc(0);
+        } else {
+            try {
+                bytes = Bytes.ofData(UnixStreamSocket._recvfrom2(this.sfd, nbytes));
+            } catch (ex:Dynamic) {
+                throw new SocketException(ex);
+            }
+        }
+
+        return bytes;
+    }
+
+    /**
+     * @{inherit}
+     */
+    public function write(bytes:Null<Bytes>, path:Null<String> = null, flags:Int = 0):Int
     {
         if (this.sfd == null) {
             throw new IllegalStateException("Socket file descriptor not available");
@@ -109,6 +134,33 @@ class DgramSocket extends Socket implements IDgramSocket
 
             try {
                 sent = UnixDgramSocket._sendto(this.sfd, bytes.getData(), bytes.length, path, flags);
+            } catch (ex:Dynamic) {
+                throw new SocketException(ex);
+            }
+        }
+
+        return sent;
+    }
+
+    /**
+     * @{inherit}
+     */
+    public function writePeer(bytes:Null<Bytes>):Int
+    {
+        if (this.sfd == null) {
+            throw new IllegalStateException("Socket file descriptor not available");
+        }
+
+        var sent:Int;
+        if (bytes == null || bytes.length == 0) {
+            sent = 0;
+        } else {
+            if (path == null) {
+                path = this.path;
+            }
+
+            try {
+                sent = UnixDgramSocket._sendto2(this.sfd, bytes.getData(), bytes.length);
             } catch (ex:Dynamic) {
                 throw new SocketException(ex);
             }

@@ -28,8 +28,8 @@ interface IDgramSocket
      * Writes the input bytes to the socket located at 'path'.
      *
      * @param Null<haxe.io.Bytes> bytes the Bytes to send
-     * @param Int                 flags control flags
      * @param Null<String>        path  the location of the socket to which we will write
+     * @param Int                 flags control flags
      */
-    public function write(bytes:Null<Bytes>, flags:Int = 0, path:Null<String> = null):Int;
+    public function write(bytes:Null<Bytes>, path:Null<String> = null, flags:Int = 0):Int;
 }

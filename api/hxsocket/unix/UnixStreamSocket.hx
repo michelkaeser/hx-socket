@@ -1,18 +1,18 @@
-package hxsocket;
+package hxsocket.unix;
 
 import haxe.io.Bytes;
 import haxe.io.BytesData;
 import hxsocket.IStreamSocket;
 import hxsocket.Loader;
 import hxsocket.SocketException;
-import hxsocket.unix.Socket;
+import hxsocket.unix.UnixSocket;
 import hxstd.IllegalArgumentException;
 import hxstd.IllegalStateException;
 
 /**
  *
  */
-class StreamSocket extends UnixSocket implements IStreamSocket
+class UnixStreamSocket extends UnixSocket implements IStreamSocket
 {
     /**
      * References to native function implementations loaded through Haxe (hxcpp) C FFI.
@@ -77,7 +77,7 @@ class StreamSocket extends UnixSocket implements IStreamSocket
     /**
      * @{inherit}
      */
-    override public function read(nbytes:Int):Bytes
+    public function read(nbytes:Int):Bytes
     {
         if (this.sfd == null) {
             throw new IllegalStateException("Socket file descriptor not available");

@@ -1,10 +1,10 @@
-package hxsocket;
+package hxsocket.unix;
 
 import hxsocket.Loader;
 import hxsocket.Sfd;
 import hxsocket.SocketException;
-import hxsocket.unix.DgramSocket;
-import hxsocket.unix.StreamSocket;
+import hxsocket.unix.UnixDgramSocket;
+import hxsocket.unix.UnixStreamSocket;
 import hxstd.IllegalArgumentException;
 import hxstd.IllegalStateException;
 
@@ -12,7 +12,7 @@ import hxstd.IllegalStateException;
  *
  * @abstract
  */
-class Socket
+class UnixSocket
 {
     /**
      * References to native function implementations loaded through Haxe (hxcpp) C FFI.
