@@ -17,8 +17,10 @@ class UnixSocket
     /**
      * References to native function implementations loaded through Haxe (hxcpp) C FFI.
      */
-    private static var _create:String->Int->Int->Sfd = Loader.load("hx_create_unix_server_socket", 3);
-    private static var _destroy:Sfd->Int             = Loader.load("hx_destroy_unix_socket", 1);
+    private static var _create:String->Int->Int->Sfd    = Loader.load("hx_create_unix_server_socket", 3);
+    private static var _destroy:Sfd->Int                = Loader.load("hx_destroy_unix_socket", 1);
+    private static var _recvfrom:Sfd->Int->BytesData    = Loader.load("hx_recvfrom_unix_stream_socket", 2);
+    private static var _sendto:Sfd->BytesData->Int->Int = Loader.load("hx_sendto_unix_stream_socket", 3);
 
     /**
      * Possible UnixSocket server modes.

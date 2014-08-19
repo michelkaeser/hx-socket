@@ -19,9 +19,7 @@ class UnixStreamSocket extends UnixSocket implements IStreamSocket
      */
     private static var _accept:Sfd->Int->Sfd            = Loader.load("hx_accept_unix_stream_socket", 2);
     private static var _create:String->Int->Sfd         = Loader.load("hx_create_unix_stream_socket", 2);
-    private static var _recvfrom:Sfd->Int->BytesData    = Loader.load("hx_recvfrom_unix_stream_socket", 2);
     private static var _shutdown:Sfd->Int->Int          = Loader.load("hx_shutdown_unix_stream_socket", 2);
-    private static var _sendto:Sfd->BytesData->Int->Int = Loader.load("hx_sendto_unix_stream_socket", 3);
 
     /**
      * Possible UnixSocket shutdown methods.
@@ -88,7 +86,7 @@ class UnixStreamSocket extends UnixSocket implements IStreamSocket
             bytes = Bytes.alloc(0);
         } else {
             try {
-                bytes = Bytes.ofData(UnixStreamSocket._recvfrom(this.sfd, nbytes));
+                bytes = Bytes.ofData(UnixSocket._recvfrom(this.sfd, nbytes));
             } catch (ex:Dynamic) {
                 throw new SocketException(ex);
             }
@@ -130,7 +128,7 @@ class UnixStreamSocket extends UnixSocket implements IStreamSocket
             sent = 0;
         } else {
             try {
-                sent = UnixStreamSocket._sendto(this.sfd, bytes.getData(), bytes.length);
+                sent = UnixSocket._sendto(this.sfd, bytes.getData(), bytes.length);
             } catch (ex:Dynamic) {
                 throw new SocketException(ex);
             }
