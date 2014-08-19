@@ -2,16 +2,17 @@ package hxsocket;
 
 import haxe.io.Bytes;
 import haxe.io.BytesData;
+import hxsocket.IStreamSocket;
 import hxsocket.Loader;
 import hxsocket.SocketException;
-import hxsocket.UnixSocket;
+import hxsocket.unix.Socket;
 import hxstd.IllegalArgumentException;
 import hxstd.IllegalStateException;
 
 /**
  *
  */
-class UnixStreamSocket extends UnixSocket
+class StreamSocket extends UnixSocket implements IStreamSocket
 {
     /**
      * References to native function implementations loaded through Haxe (hxcpp) C FFI.
@@ -41,11 +42,7 @@ class UnixStreamSocket extends UnixSocket
     }
 
     /**
-     * Accepts an incoming stream socket connection.
-     *
-     * @param Int flags the control flags defining how to wait for/accept connections
-     *
-     * @return hxsocket.UnixStreamSocket
+     * @{inherit}
      */
     public function accept(flags:Int = 0):UnixStreamSocket
     {
@@ -79,34 +76,29 @@ class UnixStreamSocket extends UnixSocket
 
     /**
      * @{inherit}
-     *
-     * Attn: The 'flags' argument is ignored.
      */
-    override public function read(nbytes:Int, flags:Int = 0):{ bytes:Bytes, from:Null<String> }
+    override public function read(nbytes:Int):Bytes
     {
         if (this.sfd == null) {
             throw new IllegalStateException("Socket file descriptor not available");
         }
 
-        var ret:{ bytes:Bytes, from:Null<String> };
+        var bytes:Bytes;
         if (nbytes == 0) {
-            ret = { bytes: Bytes.alloc(0), from: null };
+            bytes = Bytes.alloc(0);
         } else {
             try {
-                var bytes:BytesData = UnixStreamSocket._recvfrom(this.sfd, nbytes);
-                ret = { bytes: Bytes.ofData(bytes), from: null };
+                bytes = Bytes.ofData(UnixStreamSocket._recvfrom(this.sfd, nbytes));
             } catch (ex:Dynamic) {
                 throw new SocketException(ex);
             }
         }
 
-        return ret;
+        return bytes;
     }
 
     /**
-     * Shuts the sockets 'method' stream down.
-     *
-     * @param Int method the stream to shutdown
+     * @{inherit}
      */
     public function shutdown(method:Int):Void
     {
@@ -126,10 +118,8 @@ class UnixStreamSocket extends UnixSocket
 
     /**
      * @{inherit}
-     *
-     * Attn: The 'flags' and 'path' arguments are ignored.
      */
-    override public function write(bytes:Null<Bytes>, flags:Int = 0, path:Null<String> = null):Int
+    public function write(bytes:Null<Bytes>):Int
     {
         if (this.sfd == null) {
             throw new IllegalStateException("Socket file descriptor not available");

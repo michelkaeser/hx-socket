@@ -1,21 +1,18 @@
 package hxsocket;
 
-import haxe.io.Bytes;
-import haxe.io.BytesData;
 import hxsocket.Loader;
 import hxsocket.Sfd;
 import hxsocket.SocketException;
-import hxsocket.UnixDgramSocket;
-import hxsocket.UnixStreamSocket;
+import hxsocket.unix.DgramSocket;
+import hxsocket.unix.StreamSocket;
 import hxstd.IllegalArgumentException;
 import hxstd.IllegalStateException;
-import hxstd.NotImplementedException;
 
 /**
  *
  * @abstract
  */
-class UnixSocket
+class Socket
 {
     /**
      * References to native function implementations loaded through Haxe (hxcpp) C FFI.
@@ -32,7 +29,7 @@ class UnixSocket
     /**
      * Stores the socket file descriptor reference.
      *
-     * @var hxsocket.Sfd
+     * @var Null<hxsocket.Sfd>
      */
     private var sfd:Null<Sfd>;
 
@@ -73,10 +70,10 @@ class UnixSocket
 
         var sock:UnixSocket;
         try {
-            sock = if (type == UnixSocket.STREAM) {
-                new UnixStreamSocket(UnixSocket._create(path, type, flags), path);
+            if (type == UnixSocket.STREAM) {
+                sock = new UnixStreamSocket(UnixSocket._create(path, type, flags), path);
             } else {
-                new UnixDgramSocket(UnixSocket._create(path, type, flags), path);
+                sock = new UnixDgramSocket(UnixSocket._create(path, type, flags), path);
             }
         } catch (ex:Dynamic) {
             throw new SocketException(ex);
@@ -103,30 +100,5 @@ class UnixSocket
         } catch (ex:Dynamic) {
             throw new SocketException(ex);
         }
-    }
-
-    /**
-     * Reads 'nbytes' from the socket.
-     *
-     * @param Int nbytes the number of bytes to read
-     * @param Int flags  control flags
-     *
-     * @return { bytes:haxe.io.Bytes, from:Null<String> }
-     */
-    public function read(nbytes:Int, flags:Int = 0):{ bytes:Bytes, from:Null<String> }
-    {
-        throw new NotImplementedException("Method read() not implemented in abstract class UnixSocket");
-    }
-
-    /**
-     * Writes the input bytes to the socket located at 'path'.
-     *
-     * @param Null<haxe.io.Bytes> bytes the Bytes to send
-     * @param Int                 flags control flags
-     * @param Null<String>        path  the location of the socket to which we will write
-     */
-    public function write(bytes:Null<Bytes>, flags:Int = 0, path:Null<String> = null):Int
-    {
-        throw new NotImplementedException("Method write() not implemented in abstract class UnixSocket");
     }
 }

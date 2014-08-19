@@ -2,15 +2,16 @@ package hxsocket;
 
 import haxe.io.Bytes;
 import haxe.io.BytesData;
+import hxsocket.IDgramSocket;
 import hxsocket.Loader;
 import hxsocket.SocketException;
-import hxsocket.UnixSocket;
+import hxsocket.unix.Socket;
 import hxstd.IllegalStateException;
 
 /**
  *
  */
-class UnixDgramSocket extends UnixSocket
+class DgramSocket extends Socket implements IDgramSocket
 {
     /**
      * References to native function implementations loaded through Haxe (hxcpp) C FFI.
@@ -33,9 +34,7 @@ class UnixDgramSocket extends UnixSocket
     }
 
     /**
-     * Connects to the UnixDgramSocket located at 'path'.
-     *
-     * @param String path the location of the socket to connect to
+     * @{inherit}
      */
     public function connect(path:String):Void
     {
@@ -70,7 +69,7 @@ class UnixDgramSocket extends UnixSocket
     /**
      * @{inherit}
      */
-    override public function read(nbytes:Int, flags:Int = 0):{ bytes:Bytes, from:Null<String> }
+    public function read(nbytes:Int, flags:Int = 0):{ bytes:Bytes, from:Null<String> }
     {
         if (this.sfd == null) {
             throw new IllegalStateException("Socket file descriptor not available");
@@ -94,7 +93,7 @@ class UnixDgramSocket extends UnixSocket
     /**
      * @{inherit}
      */
-    override public function write(bytes:Null<Bytes>, flags:Int = 0, path:Null<String> = null):Int
+    public function write(bytes:Null<Bytes>, flags:Int = 0, path:Null<String> = null):Int
     {
         if (this.sfd == null) {
             throw new IllegalStateException("Socket file descriptor not available");
