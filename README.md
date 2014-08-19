@@ -2,6 +2,24 @@
 
 > Haxe (C++/Neko) language bindings for libsocket.
 
+## Build steps
+
+You need the `hxcpp` library from `haxelib`:
+
+    haxelib install hxcpp
+
+as well as the `libsocket` development and runtime files:
+
+    https://github.com/dermesser/libsocket // Linux only
+
+afterwards, all is magic:
+
+    git clone -b develop git@github.com:MaddinXx/hxsocket.git
+    cd hxsocket
+    haxelib run hxcpp -DHXCPP_M64 build/build.hxml
+
+> Use `-DHXCPP_M32` if on 32-bit system!
+
 ## Compilation Flags
 
 `-D HXSOCKET_LOADLAZY` which will load the `.ndll` method implementations using the `.Lib.loadLazy` method rather than using normal `load`.
